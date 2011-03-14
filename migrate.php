@@ -1,14 +1,14 @@
 <?php
 /*
  * WordPress Migration
- * 
+ *
  * version: 1.0
- * 
+ *
  * Author: Azizur Rahman
  * Twitter: @azizur
  * Website: http://azizur-rahman.co.uk
- * 
- * 
+ *
+ *
  * Script usage:
  * 1) Upload this script to you WordPress root directory (where wp-config.php file is located)
  * 2) Browse to http://your-newly-migrated.com/migrate.php
@@ -32,21 +32,18 @@ defined('WP_DEBUG') or define('WP_DEBUG', true);
 
 /**
  * update_site_options - migrate an array of options
- * 
+ *
  * @param array $options options to migrate
  * @param type $old_url migrate from url
  * @param type $new_url migrate to url
  */
 function update_site_options(array $options, $old_url, $new_url) {
     foreach ($options as $option_name => $option_value) {
-        
+
         if (FALSE === strpos($option_value, $old_url)) {
-//            print_r($option_value);
-//            echo '<hr />';
-//            die;exit;
             continue;
         }
-        
+
         if (is_array($option_value)) {
             update_site_options($option_value);
         }
@@ -54,7 +51,7 @@ function update_site_options(array $options, $old_url, $new_url) {
 
         // attempt to unserialize option_value
         //$unserialized = @unserialize($option_value);
-        
+
         if(!is_serialized($option_value)) {
             $newvalue = str_replace($old_url, $new_url, $option_value);
         } else {
@@ -102,19 +99,19 @@ if (isset($_POST['submit'])) {
     // site options
     $siteopts = wp_load_alloptions();
     $result = update_site_options($siteopts, $old_url, $new_url);
-    
+
     // Permalinks
     $permalinks = "UPDATE $wpdb->posts SET guid = replace(guid, '" . $old_url . "/','" . $new_url . "/')";
     $result     = $wpdb->query( $permalinks );
-    
+
     // Post content
     $content = "UPDATE $wpdb->posts SET post_content = replace(post_content, '" . $old_url . "/','" . $new_url . "/')";
     $result = $wpdb->query( $content );
-    
+
     // Post excerpts
     $excerpts = "UPDATE $wpdb->posts SET post_excerpt = replace(post_excerpt, '" . $old_url . "/','" . $new_url . "/')";
     $result = $wpdb->query( $excerpts );
-    
+
     // Postmeta
     $postmeta = "UPDATE $wpdb->postmeta SET meta_value = replace(meta_value, '" . $old_url . "/','" . $new_url . "/')";
     $result = $wpdb->query( $postmeta );
@@ -191,7 +188,7 @@ if (isset($_POST['submit'])) {
                 </p>
             </form>
 
-            
+
             <p id="notice"><strong>WordPress OneClick Migration</strong> v1.0 by <a href="https://github.com/azizur">Azizur Rahman</a></p>
 
         </div>
