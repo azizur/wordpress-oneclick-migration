@@ -1,26 +1,24 @@
 <?php
 /*
- * WordPress Migration
+ * WordPress OneClick Migration
  *
- * version: 1.0
+ * @version: 1.1
  *
- * Author: Azizur Rahman
+ * @author: Azizur Rahman
  * Twitter: @azizur
  * Website: http://azizur-rahman.co.uk
  *
  *
  * Script usage:
- * 1) Upload this script to you WordPress root directory (where wp-config.php file is located)
- * 2) Browse to http://your-newly-migrated.com/migrate.php
- * 3) Follow the on screen instructions
+ *  @see readme.md
  */
 
 
-// sanity check
+// sanity checks
 if (!is_readable('wp-config.php') or !is_readable('wp-includes/functions.php')) {
     echo('wp-config.php or WordPress functions files was not found.');
     echo('Are you sure you have uploaded all the core wordpress files to this server');
-    die;exit;
+    exit();
 } else {
     // Load WordPress config and functions
     require_once 'wp-config.php';
@@ -48,10 +46,7 @@ function update_site_options(array $options, $old_url, $new_url) {
             update_site_options($option_value);
         }
 
-
         // attempt to unserialize option_value
-        //$unserialized = @unserialize($option_value);
-
         if(!is_serialized($option_value)) {
             $newvalue = str_replace($old_url, $new_url, $option_value);
         } else {
@@ -71,13 +66,17 @@ function update_site_options(array $options, $old_url, $new_url) {
  * @return type array
  */
 function update_serialized_options($data, $old_url, $new_url) {
+    
+    // ignore _site_transient_update_*
+    if(is_object($data)){
+        return $data;
+    }
+    
     foreach ($data as $key => $val) {
-
         if (is_array($val)) {
-            $data[$key] = update_serialized_options($val, $old_url, $new_url);
+                $data[$key] = update_serialized_options($val, $old_url, $new_url);
         } else {
-            $found = strstr($val, $old_url);
-            if (!$found) {
+            if (!strstr($val, $old_url)) {
                 continue;
             }
             $data[$key] = str_replace($old_url, $new_url, $val);
@@ -86,16 +85,44 @@ function update_serialized_options($data, $old_url, $new_url) {
     return $data;
 }
 
+/**
+ * self_destruct -- self destruct?
+ *
+ * @param boolean $runmeonce
+ * @return type boolean or string
+ */
+function self_destruct($runmeonce) {
+    $return = false;
+    if($runmeonce) {
+        if(is_writable(__FILE__)){
+            $return = unlink(__FILE__);
+        } else {
+            $return = '<p id="selfdestruct" class="failed"><strong>Unable to delete</strong> <br /><code>'.__FILE__.'</code><br />';
+            $return .= 'For security reason please delete it manually.</p>';
+        }
+    }
+    return $return;
+}
+
 // Get posted data
 $old_url = (isset($_POST['old_url'])) ? ($_POST['old_url']) : ( site_url() ); //('url');
 $new_url = (isset($_POST['new_uri'])) ? ($_POST['new_uri']) : ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] );
 
-// allow multiple runs
+// have we already migrated?
+$migrated = (0 == strcmp($old_url, $new_url))?true:false;
+
+// check if we need to migrate?
+if ($migrated) {
+    header('Location: '.$new_url);
+    exit();
+}
+
+// allow multiple runs?
 $runmeonce = false;
 
 // Have we been pleased with a POST?
-if (isset($_POST['submit'])) {
-
+if (isset($_POST['submit']) and !$migrated) {
+    
     // site options
     $siteopts = wp_load_alloptions();
     $result = update_site_options($siteopts, $old_url, $new_url);
@@ -115,11 +142,14 @@ if (isset($_POST['submit'])) {
     // Postmeta
     $postmeta = "UPDATE $wpdb->postmeta SET meta_value = replace(meta_value, '" . $old_url . "/','" . $new_url . "/')";
     $result = $wpdb->query( $postmeta );
-
-    $message = '<br /><p class="path"><strong>Migration complete:</strong> please delete this script.</p>';
+    
+    // TODO: possbly check custom tables made by plugins
+    
+    // we have migrate all the core data
+    $migrated = true;
 
     // only run me once
-    if (isset($_POST['runme']) and strcmp('once', $_POST['runme'])) {
+    if ( isset($_POST['runme']) ) {
         $runmeonce = true;
     }
 }
@@ -127,18 +157,13 @@ if (isset($_POST['submit'])) {
 <!doctype html>
 <html>
     <head>
-        <title>WordPress OneClick DB Migration</title>
-
+        <title>WordPress OneClick Migration</title>
         <link rel='stylesheet' id='login-css'  href='/wp-admin/css/login.css' type='text/css' media='all' />
         <link rel='stylesheet' id='colors-fresh-css'  href='/wp-admin/css/colors-fresh.css' type='text/css' media='all' />
-        <?php
-//        wp_admin_css('login', true);
-//        wp_admin_css('colors-fresh', true);
-        ?>
         <style>
             #migrate { margin: 7em auto; width: 480px; }
             h1 a { width: 486px; }
-            #intro { padding: 10px;
+            #intro, #status, #selfdestruct { padding: 10px;
                      background: #FBFBFB;
                      border: 1px solid #E5E5E5;
                      color: #777777;
@@ -150,9 +175,26 @@ if (isset($_POST['submit'])) {
                      width: 97%;
                      text-shadow: 0 1px 0 #FFFFFF;
             }
-            #intro, #notice { text-align: center; }
+            #intro, #notice, #status, #selfdestruct { text-align: center; }
             #intro strong, #notice strong {color: #21759B;}
             #notice { margin: 0 0 0 8px; padding: 16px;text-shadow: 0 1px 0 #FFFFFF;}
+            
+            input[type="checkbox"] {
+                background: none repeat scroll 0 0 #FBFBFB;
+                border: 1px solid #E5E5E5;
+                font-size: 24px;
+                margin-bottom: 16px;
+                margin-right: 6px;
+                margin-top: 6px;
+                margin-left: 6px;
+                padding: 6px 4px;
+                /*width: 10%;*/
+            }
+            form p {
+                margin-bottom: 10px;
+            }
+            #status { background-color: #e7edf1; }
+            #selfdestruct { background-color: #fee; }
         </style>
         <meta name='robots' content='noindex,nofollow' />
     </head>
@@ -168,6 +210,15 @@ if (isset($_POST['submit'])) {
 
             <form name="migrateform" id="migrateform" action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
                 <p id="intro"><strong>WordPress OneClick Migration</strong><br />This script will update site information on your new domain.</p>
+                <?php if($migrated) { ?>
+                <p id="status" class="migrated"><strong>Migration complete.</strong><br /><br /><a href="<?php bloginfo('url'); ?>/" title="<?php _e('Are you lost?') ?>"><?php printf(__('Back to %s &rarr;'), get_bloginfo('title', 'display')); ?></a> </p>
+                <?php if($runmeonce) {?>
+                <?php echo self_destruct($runmeonce); ?>
+                <?php } ?>
+                
+                <?php } else { ?>
+                
+                
 
 
                 <p>
@@ -180,12 +231,14 @@ if (isset($_POST['submit'])) {
                         <input type="text" name="new_uri" id="new_uri" class="input" value="<?php echo $new_url; ?>" size="20" tabindex="20" /></label>
                 </p>
                 <p class="runmeonce">
-                    <label><input name="runme" type="checkbox" id="runme" value="once" tabindex="90" /> Delete Me</label>
+                    <label>Delete after migration?<br />
+                        <input name="runme" type="checkbox" id="runme" value="runonce" tabindex="90" /> Yes, Please</label>
                 </p>
                 <p class="submit">
                     <input type="submit" name="submit" id="submit" class="button-primary" value="Update Site Information" tabindex="100" />
                     <input type="hidden" name="redirect_to" value="<?php echo $new_url; ?>" />
                 </p>
+                <?php } ?>
             </form>
 
 
@@ -199,9 +252,3 @@ if (isset($_POST['submit'])) {
         <!-- /javascripts -->
     </body>
 </html>
-<?php
-if ($runmeonce) {
-    unlink(__FILE__);
-    exit;
-}
-?>
