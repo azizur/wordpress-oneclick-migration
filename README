@@ -1,16 +1,16 @@
 WordPress OneClick Migration
 =============
-This script will update site information on your new domain.
+This script will update site information when moving WordPress sites from server/site to server/site.
 
 
-Pre-preparation
+Preparation
 -------
 Before you can make use of this script you need to have done.
 
-* export/mysql dump file from you source site
+* export/mysql dump file from you source site/server
 
-* import your mysql dump file on your target server
-* complete your wp-config.php file on your target server
+* import your mysql dump file on your target site/server
+* complete your wp-config.php file on your target site/server
 
 
 Script usage
@@ -22,10 +22,21 @@ Script usage
 
 History
 -------
+1.2
+
+* Added GNU General Public License
+
+* Add manual force - now you can append ?forced=1 to run the script again
+
 1.1
+
 * Migration Confirmation message when completed
+
 * Ability to self destruct if server has permission to do so else show error message
+
 * Auto redirect to new site if we detect migration is already complete
 
+
 1.0
+
 * Initial Release

@@ -1,18 +1,37 @@
 <?php
 /*
  * WordPress OneClick Migration
- *
+ * This script will update site information when moving WordPress sites from server/site to server/site.
+ * 
  * @version: 1.1
- *
  * @author: Azizur Rahman
  * Twitter: @azizur
  * Website: http://azizur-rahman.co.uk
- *
- *
- * Script usage:
- *  @see readme.md
+ * 
+ * Copyright (C) 2011 Azizur Rahman (ProDevStudio)
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * 
  */
-
 
 // sanity checks
 if (!is_readable('wp-config.php') or !is_readable('wp-includes/functions.php')) {
@@ -111,6 +130,9 @@ $new_url = (isset($_POST['new_uri'])) ? ($_POST['new_uri']) : ( (isset($_SERVER[
 // have we already migrated?
 $migrated = (0 == strcmp($old_url, $new_url))?true:false;
 
+// manually force it?
+$migrated = (isset($_REQUEST['forced']) && $_REQUEST['forced'])?false:$migrated;
+
 // check if we need to migrate?
 if ($migrated) {
     header('Location: '.$new_url);
@@ -207,20 +229,15 @@ if (isset($_POST['submit']) and !$migrated) {
                 <h1><a href="<?php echo apply_filters('login_headerurl', network_home_url()); ?>" title="<?php echo apply_filters('login_headertitle', $current_site->site_name); ?>"><span class="hide"><?php bloginfo('name'); ?></span></a></h1>
             <?php } ?>
 
-
             <form name="migrateform" id="migrateform" action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
-                <p id="intro"><strong>WordPress OneClick Migration</strong><br />This script will update site information on your new domain.</p>
+                <p id="intro"><strong>WordPress OneClick Migration</strong><br />This script will update site information on your new site.</p>
                 <?php if($migrated) { ?>
-                <p id="status" class="migrated"><strong>Migration complete.</strong><br /><br /><a href="<?php bloginfo('url'); ?>/" title="<?php _e('Are you lost?') ?>"><?php printf(__('Back to %s &rarr;'), get_bloginfo('title', 'display')); ?></a> </p>
-                <?php if($runmeonce) {?>
-                <?php echo self_destruct($runmeonce); ?>
-                <?php } ?>
-                
+                <p id="status" class="migrated"><strong>Migration complete.</strong><br /><br /><a href="<?php bloginfo('url'); ?>/" title="<?php _e('Are you lost?') ?>"><?php printf(__('Back to %s &rarr;'), get_bloginfo('title', 'display')); ?></a></p>
+                <?php
+                if($runmeonce) {
+                    echo self_destruct($runmeonce);
+                } ?>
                 <?php } else { ?>
-                
-                
-
-
                 <p>
                     <label>Old URL<br />
                         <input type="text" name="old_url" id="old_url" class="input" value="<?php echo $old_url; ?>" size="20" tabindex="10" /></label>
@@ -236,13 +253,11 @@ if (isset($_POST['submit']) and !$migrated) {
                 </p>
                 <p class="submit">
                     <input type="submit" name="submit" id="submit" class="button-primary" value="Update Site Information" tabindex="100" />
-                    <input type="hidden" name="redirect_to" value="<?php echo $new_url; ?>" />
+                    <input type="hidden" name="forced" value="<?php echo (isset($_REQUEST['forced'])?'1':'0'); ?>" />
                 </p>
                 <?php } ?>
             </form>
-
-
-            <p id="notice"><strong>WordPress OneClick Migration</strong> v1.0 by <a href="https://github.com/azizur">Azizur Rahman</a></p>
+                <p id="notice"><strong>WordPress OneClick Migration</strong> Copyright (C) 2011 <a href="http://azizur-rahman.co.uk/?utm_source=wordpress-oneclick-migration&utm_medium=github&utm_campaign=wordpress-oneclick-migration">Azizur Rahman</a><br /><br />This program comes with ABSOLUTELY NO WARRANTY; This is free software, and you are welcome to redistribute it under certain conditions;<br /><strong><a href="http://www.gnu.org/licenses/gpl-3.0.html">GPLv3</a></strong></p>
 
         </div>
         <p id="backtoblog"><a href="<?php bloginfo('url'); ?>/" title="<?php _e('Are you lost?') ?>"><?php printf(__('&larr; Back to %s'), get_bloginfo('title', 'display')); ?></a></p>
