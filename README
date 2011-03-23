@@ -22,11 +22,18 @@ Script usage
 
 History
 -------
+
+Release 1.3
+
+* Fixed missing parameters on a recursive call props perecedero (Ivan Lansky)
+
+
 1.2
 
 * Added GNU General Public License
 
-* Add manual force - now you can append ?forced=1 to run the script again
+* Added manual force - now you can append ?forced=1 to run the script again
+
 
 1.1
 

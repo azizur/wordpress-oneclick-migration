@@ -2,27 +2,27 @@
 /*
  * WordPress OneClick Migration
  * This script will update site information when moving WordPress sites from server/site to server/site.
- * 
+ *
  * @version: 1.1
  * @author: Azizur Rahman
  * Twitter: @azizur
  * Website: http://azizur-rahman.co.uk
- * 
+ *
  * Copyright (C) 2011 Azizur Rahman (ProDevStudio)
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -30,7 +30,7 @@
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 // sanity checks
@@ -62,7 +62,7 @@ function update_site_options(array $options, $old_url, $new_url) {
         }
 
         if (is_array($option_value)) {
-            update_site_options($option_value);
+            update_site_options($option_value, $old_url, $new_url);
         }
 
         // attempt to unserialize option_value
@@ -85,12 +85,12 @@ function update_site_options(array $options, $old_url, $new_url) {
  * @return type array
  */
 function update_serialized_options($data, $old_url, $new_url) {
-    
+
     // ignore _site_transient_update_*
     if(is_object($data)){
         return $data;
     }
-    
+
     foreach ($data as $key => $val) {
         if (is_array($val)) {
                 $data[$key] = update_serialized_options($val, $old_url, $new_url);
@@ -144,7 +144,7 @@ $runmeonce = false;
 
 // Have we been pleased with a POST?
 if (isset($_POST['submit']) and !$migrated) {
-    
+
     // site options
     $siteopts = wp_load_alloptions();
     $result = update_site_options($siteopts, $old_url, $new_url);
@@ -164,9 +164,9 @@ if (isset($_POST['submit']) and !$migrated) {
     // Postmeta
     $postmeta = "UPDATE $wpdb->postmeta SET meta_value = replace(meta_value, '" . $old_url . "/','" . $new_url . "/')";
     $result = $wpdb->query( $postmeta );
-    
+
     // TODO: possbly check custom tables made by plugins
-    
+
     // we have migrate all the core data
     $migrated = true;
 
@@ -200,7 +200,7 @@ if (isset($_POST['submit']) and !$migrated) {
             #intro, #notice, #status, #selfdestruct { text-align: center; }
             #intro strong, #notice strong {color: #21759B;}
             #notice { margin: 0 0 0 8px; padding: 16px;text-shadow: 0 1px 0 #FFFFFF;}
-            
+
             input[type="checkbox"] {
                 background: none repeat scroll 0 0 #FBFBFB;
                 border: 1px solid #E5E5E5;
