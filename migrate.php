@@ -33,15 +33,18 @@
  *
  */
 
+if ( !defined('ABSPATH') )
+        define('ABSPATH', dirname(__FILE__) . '/');
+
 // sanity checks
-if (!is_readable('wp-config.php') or !is_readable('wp-includes/functions.php')) {
+if (!is_readable(ABSPATH . 'wp-config.php') or !is_readable(ABSPATH . 'wp-includes/functions.php')) {
     echo('wp-config.php or WordPress functions files was not found.');
     echo('Are you sure you have uploaded all the core wordpress files to this server');
     exit();
 } else {
     // Load WordPress config and functions
-    require_once 'wp-config.php';
-    require_once 'wp-includes/functions.php';
+    require_once ABSPATH . 'wp-config.php';
+    require_once ABSPATH . 'wp-includes/functions.php';
 }
 
 // set up error reporting
