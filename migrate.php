@@ -153,19 +153,19 @@ if (isset($_POST['submit']) and !$migrated) {
     $result = update_site_options($siteopts, $old_url, $new_url);
 
     // Permalinks
-    $permalinks = "UPDATE $wpdb->posts SET guid = replace(guid, '" . $old_url . "/','" . $new_url . "/')";
+    $permalinks = "UPDATE $wpdb->posts SET guid = replace(guid, '" . $old_url . "','" . $new_url . "')";
     $result     = $wpdb->query( $permalinks );
 
     // Post content
-    $content = "UPDATE $wpdb->posts SET post_content = replace(post_content, '" . $old_url . "/','" . $new_url . "/')";
+    $content = "UPDATE $wpdb->posts SET post_content = replace(post_content, '" . $old_url . "','" . $new_url . "')";
     $result = $wpdb->query( $content );
 
     // Post excerpts
-    $excerpts = "UPDATE $wpdb->posts SET post_excerpt = replace(post_excerpt, '" . $old_url . "/','" . $new_url . "/')";
+    $excerpts = "UPDATE $wpdb->posts SET post_excerpt = replace(post_excerpt, '" . $old_url . "','" . $new_url . "')";
     $result = $wpdb->query( $excerpts );
 
     // Postmeta
-    $postmeta = "UPDATE $wpdb->postmeta SET meta_value = replace(meta_value, '" . $old_url . "/','" . $new_url . "/')";
+    $postmeta = "UPDATE $wpdb->postmeta SET meta_value = replace(meta_value, '" . $old_url . "','" . $new_url . "')";
     $result = $wpdb->query( $postmeta );
 
     // TODO: possbly check custom tables made by plugins
