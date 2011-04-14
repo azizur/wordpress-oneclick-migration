@@ -116,8 +116,9 @@ function update_serialized_options($data, $old_url, $new_url) {
 function self_destruct($runmeonce) {
     $return = false;
     if($runmeonce) {
-        if(is_writable(__FILE__)){
-            $return = unlink(__FILE__);
+        if( is_writable(__FILE__) && unlink(__FILE__) ){
+            $return = '<p id="selfdestruct" class="failed"><strong>Successfully deleted</strong> <br /><code>'.__FILE__.'</code><br />';
+            $return .= 'For security reason please please check it manually.</p>';
         } else {
             $return = '<p id="selfdestruct" class="failed"><strong>Unable to delete</strong> <br /><code>'.__FILE__.'</code><br />';
             $return .= 'For security reason please delete it manually.</p>';
