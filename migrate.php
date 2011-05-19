@@ -3,7 +3,7 @@
  * WordPress OneClick Migration
  * This script will update site information when moving WordPress sites from server/site to server/site.
  *
- * @version: 1.1
+ * @version: 1.4
  * @author: Azizur Rahman
  * Twitter: @azizur
  * Website: http://azizur-rahman.co.uk
@@ -33,18 +33,15 @@
  *
  */
 
-if ( !defined('ABSPATH') )
-        define('ABSPATH', dirname(__FILE__) . '/');
-
 // sanity checks
-if (!is_readable(ABSPATH . 'wp-config.php') or !is_readable(ABSPATH . 'wp-includes/functions.php')) {
+if (!is_readable('wp-config.php') or !is_readable('wp-includes/functions.php')) {
     echo('wp-config.php or WordPress functions files was not found.');
     echo('Are you sure you have uploaded all the core wordpress files to this server');
     exit();
 } else {
     // Load WordPress config and functions
-    require_once ABSPATH . 'wp-config.php';
-    require_once ABSPATH . 'wp-includes/functions.php';
+    require_once 'wp-config.php';
+    require_once 'wp-includes/functions.php';
 }
 
 // set up error reporting
@@ -116,9 +113,8 @@ function update_serialized_options($data, $old_url, $new_url) {
 function self_destruct($runmeonce) {
     $return = false;
     if($runmeonce) {
-        if( is_writable(__FILE__) && unlink(__FILE__) ){
-            $return = '<p id="selfdestruct" class="failed"><strong>Successfully deleted</strong> <br /><code>'.__FILE__.'</code><br />';
-            $return .= 'For security reason please please check it manually.</p>';
+        if(is_writable(__FILE__)){
+            $return = unlink(__FILE__);
         } else {
             $return = '<p id="selfdestruct" class="failed"><strong>Unable to delete</strong> <br /><code>'.__FILE__.'</code><br />';
             $return .= 'For security reason please delete it manually.</p>';
@@ -154,22 +150,41 @@ if (isset($_POST['submit']) and !$migrated) {
     $result = update_site_options($siteopts, $old_url, $new_url);
 
     // Permalinks
-    $permalinks = "UPDATE $wpdb->posts SET guid = replace(guid, '" . $old_url . "','" . $new_url . "')";
+    $permalinks = "UPDATE $wpdb->posts SET guid = replace(guid, '" . $old_url . "/','" . $new_url . "/')";
     $result     = $wpdb->query( $permalinks );
 
     // Post content
-    $content = "UPDATE $wpdb->posts SET post_content = replace(post_content, '" . $old_url . "','" . $new_url . "')";
+    $content = "UPDATE $wpdb->posts SET post_content = replace(post_content, '" . $old_url . "/','" . $new_url . "/')";
     $result = $wpdb->query( $content );
 
     // Post excerpts
-    $excerpts = "UPDATE $wpdb->posts SET post_excerpt = replace(post_excerpt, '" . $old_url . "','" . $new_url . "')";
+    $excerpts = "UPDATE $wpdb->posts SET post_excerpt = replace(post_excerpt, '" . $old_url . "/','" . $new_url . "/')";
     $result = $wpdb->query( $excerpts );
 
     // Postmeta
-    $postmeta = "UPDATE $wpdb->postmeta SET meta_value = replace(meta_value, '" . $old_url . "','" . $new_url . "')";
+    $postmeta = "UPDATE $wpdb->postmeta SET meta_value = replace(meta_value, '" . $old_url . "/','" . $new_url . "/')";
     $result = $wpdb->query( $postmeta );
-
-    // TODO: possbly check custom tables made by plugins
+	
+	// update user meta just incase we have database prefix changes
+	$user_meta_keys = array('capabilities','user_level','user-settings','user-settings-time','dashboard_quick_press_last_post_id');
+	foreach($user_meta_keys as $meta_key) {
+		$usermeta = "UPDATE $wpdb->usermeta
+						SET
+							meta_key = '{$wpdb->prefix}$meta_key'
+						WHERE
+							meta_key LIKE '%".$meta_key."';";
+		$result = $wpdb->query( $usermeta );
+	}
+	
+	// update user roles options just incase we have database prefix changes
+	$user_roles = "UPDATE $wpdb->options
+					SET
+						option_name = '{$wpdb->prefix}user_roles'
+					WHERE
+						option_name LIKE '%user_roles';";
+	$result = $wpdb->query( $user_roles );
+	
+	// TODO: possbly check custom tables made by plugins
 
     // we have migrate all the core data
     $migrated = true;

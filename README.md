@@ -20,10 +20,20 @@ Script usage
  3. Follow the on screen instructions
 
 
-History
--------
+Want to run the script again?
+Browse to http://your-newly-migrated.com/migrate.php?forced=1
 
-Release 1.3
+
+Release History
+-------
+1.4
+
+* fixes issue #2
+* update user meta in case we have database prefix changes
+* update user roles options in case we have database prefix changes
+
+
+1.3
 
 * Fixed missing parameters on a recursive call props perecedero (Ivan Lansky)
 
