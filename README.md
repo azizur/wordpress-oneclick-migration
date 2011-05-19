@@ -26,6 +26,10 @@ Browse to http://your-newly-migrated.com/migrate.php?forced=1
 
 Release History
 -------
+1.4.1
+
+* Don't force the forward slashes to be there, just replaced the url as given. props rtgibbons (Ryan Gibbons)
+
 1.4
 
 * fixes issue #2
